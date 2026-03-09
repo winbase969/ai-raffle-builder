@@ -306,13 +306,25 @@ Wähle theme und animation passend zum Kontext. Sei kreativ!`,
       });
 
       const data = await response.json();
+      console.log("[AI Response]", data);
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
       const raw = data.content?.[0]?.text || "{}";
+      console.log("[AI Raw Text]", raw);
+
       let parsed;
       try {
         parsed = JSON.parse(raw);
       } catch {
         const match = raw.match(/\{[\s\S]*\}/);
-        parsed = match ? JSON.parse(match[0]) : {};
+        parsed = match ? JSON.parse(match[0]) : null;
+      }
+
+      if (!parsed || !parsed.title) {
+        throw new Error("Ungültige Antwort: " + raw.slice(0, 100));
       }
 
       const { message, ...newConfig } = parsed;
@@ -325,9 +337,10 @@ Wähle theme und animation passend zum Kontext. Sei kreativ!`,
         text: message || "✅ Deine Verlosung wurde aktualisiert!",
       }]);
     } catch (e) {
+      console.error("[AI Error]", e);
       setMessages((prev) => [...prev, {
         role: "assistant",
-        text: "❌ Fehler beim Verbinden mit der KI. Bitte versuche es erneut.",
+        text: `❌ Fehler: ${e.message}`,
       }]);
     }
     setLoading(false);
