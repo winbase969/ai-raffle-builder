@@ -293,19 +293,13 @@ export default function AIRaffleBuilder() {
           max_tokens: 1000,
           system: `Du bist ein Assistent der hilft, Verlosungs-Konfigurationen zu erstellen.
 Der Nutzer beschreibt seine Wunschverlosung in natürlicher Sprache.
-Du antwortest IMMER mit einem JSON-Objekt (kein Markdown, keine Backticks) mit diesen Feldern:
-{
-  "title": "Titel der Verlosung",
-  "subtitle": "Kurzer Untertitel",
-  "prize": "Beschreibung des Gewinns",
-  "emoji": "passendes Emoji",
-  "theme": "fire|ocean|neon|gold|rose",
-  "animation": "confetti|fireworks|sparkle|stars|none",
-  "winnerCount": Zahl,
-  "countdown": Minuten als Zahl (1-60),
-  "showCountdown": true|false,
-  "message": "kurze freundliche Antwort auf Deutsch was du geändert hast"
-}
+Du antwortest AUSSCHLIESSLICH mit einem rohen JSON-Objekt. KEINE Backticks, KEIN Markdown, KEIN erklärender Text außerhalb des JSON.
+Das JSON muss ALLE diese Felder enthalten:
+{"title":"Titel","subtitle":"Untertitel","prize":"Gewinn","emoji":"🎁","theme":"fire","animation":"confetti","winnerCount":1,"countdown":10,"showCountdown":true,"message":"Was ich geändert habe"}
+Erlaubte theme-Werte: fire, ocean, neon, gold, rose
+Erlaubte animation-Werte: confetti, fireworks, sparkle, stars, none
+winnerCount und countdown MÜSSEN Zahlen (integers) sein, nicht Strings.
+showCountdown MUSS boolean sein.
 Wähle theme und animation passend zum Kontext. Sei kreativ!`,
           messages: [{ role: "user", content: userMsg }],
         }),
@@ -322,6 +316,9 @@ Wähle theme und animation passend zum Kontext. Sei kreativ!`,
       }
 
       const { message, ...newConfig } = parsed;
+      if (newConfig.winnerCount) newConfig.winnerCount = Number(newConfig.winnerCount);
+      if (newConfig.countdown) newConfig.countdown = Number(newConfig.countdown);
+      if (typeof newConfig.showCountdown === "string") newConfig.showCountdown = newConfig.showCountdown === "true";
       setConfig((prev) => ({ ...prev, ...newConfig }));
       setMessages((prev) => [...prev, {
         role: "assistant",
