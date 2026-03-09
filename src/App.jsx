@@ -309,7 +309,7 @@ Wähle theme und animation passend zum Kontext. Sei kreativ!`,
       console.log("[AI Response]", data);
 
       if (data.error) {
-        throw new Error(data.error);
+        throw new Error(data.error?.message || JSON.stringify(data.error));
       }
 
       const raw = data.content?.[0]?.text || "{}";
